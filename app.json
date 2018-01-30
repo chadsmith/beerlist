@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Beer List",
+    "slug": "beerlist",
+    "sdkVersion": "25.0.0",
+    "orientation": "portrait",
+    "privacy": "unlisted",
+    "icon": "icon.png"
+  },
+  "name": "beerlist",
+  "displayName": "Beer List"
+}
