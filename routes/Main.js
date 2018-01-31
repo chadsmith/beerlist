@@ -1,43 +1,21 @@
 import React, { Component } from 'react';
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 
 import ActionButton from 'react-native-action-button';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
+import { Beer } from '../components';
 import { resetStack } from '../modules/api';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 24,
     justifyContent: 'center',
   },
   list: {
     flex: 1,
-  },
-  item: {
-    paddingTop: 15,
-    paddingRight: 10,
-    paddingBottom: 15,
-    paddingLeft: 10,
-    marginBottom: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  image: {
-    height: 36,
-    width: 36,
-    marginRight: 10,
-  },
-  text: {
-    color: '#333',
-    fontSize: 16,
-  },
-  tried: {
-    marginLeft: 5,
   },
   noBeer: {
     color: '#333',
@@ -61,30 +39,9 @@ class Main extends Component {
   _renderItem = ({ item: beer, index }) => {
     const { navigation } = this.props;
     return (
-      <TouchableOpacity onPress={() => navigation.navigate('Beer', { beer, index })}>
-        <View style={styles.item}>
-          <Image
-            resizeMode="contain"
-            source={{ uri: beer.label }}
-            style={styles.image} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.text}>
-              {beer.name}
-              {beer.tried && (
-                <MaterialIcons
-                  name="star"
-                  size={14}
-                  color="#ffd82f"
-                  style={styles.tried} />
-              )}
-            </Text>
-            <Text style={styles.text}>{beer.brewery}</Text>
-          </View>
-          <MaterialIcons
-            name="chevron-right"
-            size={24} />
-        </View>
-      </TouchableOpacity>
+      <Beer
+        beer={beer}
+        onPress={() => navigation.navigate('Beer', { beer, index })} />
     );
   }
 

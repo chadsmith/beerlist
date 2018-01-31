@@ -72,7 +72,7 @@ class Beer extends Component {
   static navigationOptions = ({ navigation }) => {
     const { beer, index } = navigation.state.params;
     let headerRight = null;
-    if(typeof index === 'undefined')
+    if(index < 0)
       headerRight = (
         <AddButton beer={beer} />
       );
@@ -97,7 +97,7 @@ class Beer extends Component {
     const { beer, index } = navigation.state.params;
     const { beers } = nextProps;
     if(lastBeers !== beers) {
-      if(typeof index !== 'undefined')
+      if(index > -1)
         navigation.setParams({ beer: beers[index] });
       else
         for(let i = 0; i < beers.length; i += 1)
@@ -150,15 +150,15 @@ class Beer extends Component {
           <Text style={styles.brewery}>{beer.brewery}</Text>
           <Text style={styles.style}>{beer.style}</Text>
           <Text style={styles.stats}>
-            {beer.abv && (
+            {!!beer.abv && (
               <Text style={styles.abv}>{beer.abv}% ABV</Text>
             )}
-            {beer.abv && beer.ibu && ' • '}
-            {beer.ibu && (
+            {!!(beer.abv && beer.ibu) && ' • '}
+            {!!beer.ibu && (
               <Text style={styles.ibu}>{beer.ibu} IBU</Text>
             )}
           </Text>
-          {typeof index !== 'undefined' && (
+          {typeof beer.quantity !== 'undefined' && (
             <Text style={styles.quantity}>Quantity: {beer.quantity}</Text>
           )}
         </View>
@@ -189,7 +189,7 @@ class Beer extends Component {
             </ActionButton.Item>
           </ActionButton>
         )}
-        {typeof index !== 'undefined' && !beer.quantity && (
+        {index > -1 && !beer.quantity && (
           <ActionButton
             buttonColor="#ffd82f"
             onPress={() => addBeer({ beer })} />

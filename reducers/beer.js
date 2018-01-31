@@ -7,7 +7,7 @@ export default (state = initialState, action) => {
   let { index = state.list.length } = action;
   switch(action.type) {
     case 'ADD_BEER':
-      if(typeof action.index === 'undefined')
+      if(typeof action.index === 'undefined' || action.index < 0)
         for(let i = 0; i < index; i += 1)
           if(state.list[i].id === action.beer.id) {
             index = i;
@@ -30,7 +30,7 @@ export default (state = initialState, action) => {
         ],
       };
     case 'REMOVE_BEER':
-      if(typeof action.index === 'undefined')
+      if(typeof action.index === 'undefined' || action.index < 0)
         for(let i = 0; i < index; i += 1)
           if(state.list[i].id === action.beer.id) {
             index = i;

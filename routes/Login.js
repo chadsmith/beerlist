@@ -1,9 +1,20 @@
 import React, { Component } from 'react';
-import { WebView } from 'react-native';
+import { StyleSheet, View, WebView } from 'react-native';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 import { login, LOGIN_URL, REDIRECT_URL, resetStack } from '../modules/api';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 24,
+    backgroundColor: '#f5f2e8',
+  },
+  webview: {
+    backgroundColor: '#f5f2e8',
+  },
+});
 
 class Login extends Component {
 
@@ -24,10 +35,13 @@ class Login extends Component {
 
   render() {
     return (
-      <WebView
-        source={{ uri: LOGIN_URL }}
-        onNavigationStateChange={this._onNavigationStateChange}
-        startInLoadingState={false} />
+      <View style={styles.container}>
+        <WebView
+          style={styles.webview}
+          source={{ uri: LOGIN_URL }}
+          onNavigationStateChange={this._onNavigationStateChange}
+          startInLoadingState={false} />
+      </View>
     );
   }
 

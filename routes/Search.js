@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
+import { Beer } from '../components';
 import { search } from '../modules/api';
 
 const styles = StyleSheet.create({
@@ -29,29 +30,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
   },
-  item: {
-    paddingTop: 15,
-    paddingRight: 10,
-    paddingBottom: 15,
-    paddingLeft: 10,
-    marginBottom: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  image: {
-    height: 36,
-    width: 36,
-    marginRight: 10,
-  },
-  text: {
-    color: '#333',
-    fontSize: 16,
-  },
-  tried: {
-    marginLeft: 5,
-  },
 });
 
 class Search extends Component {
@@ -66,9 +44,9 @@ class Search extends Component {
     this.state = {};
   }
 
-  componentWillReceiveProps({ ids }) {
+  componentWillReceiveProps({ beers }) {
     const { results = [] } = this.state;
-    if(this.props.ids !== ids)
+    if(this.props.beers !== beers)
       this.setState({ results: [ ...results ] });
   }
 
@@ -82,6 +60,12 @@ class Search extends Component {
     this.setState({ query });
   }
 
+  _clear = () =>
+    this.setState({
+      query: null,
+      results: null,
+    });
+
   _search = () => {
     const { query } = this.state;
     clearTimeout(this._timeout);
@@ -91,33 +75,17 @@ class Search extends Component {
     }));
   }
 
-  _renderItem = ({ item: beer }) => {
-    const { ids } = this.props;
+  _renderItem = ({ item }) => {
+    const { ids, beers, navigation } = this.props;
+    const index = ids.indexOf(item.id);
+    const beer = {
+      ...beers[index],
+      ...item,
+    };
     return (
-      <TouchableOpacity onPress={() => this._addBeer(beer)}>
-        <View style={styles.item}>
-          <Image
-            resizeMode="contain"
-            source={{ uri: beer.label }}
-            style={styles.image} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.text}>
-              {beer.name}
-              {beer.tried && (
-                <MaterialIcons
-                  name="star"
-                  size={14}
-                  color="#ffd82f"
-                  style={styles.tried} />
-              )}
-            </Text>
-            <Text style={styles.text}>{beer.brewery}</Text>
-          </View>
-          <MaterialIcons
-            name={ids.includes(beer.id) ? 'check' : 'chevron-right'}
-            size={24} />
-        </View>
-      </TouchableOpacity>
+      <Beer
+        beer={beer}
+        onPress={() => navigation.navigate('Beer', { beer, index })} />
     );
   }
 
@@ -138,9 +106,6 @@ class Search extends Component {
       );
   }
 
-  _addBeer = beer =>
-    this.props.navigation.navigate('Beer', { beer });
-
   render() {
     const { results, query } = this.state;
     return (
@@ -154,11 +119,20 @@ class Search extends Component {
             style={styles.input}
             underlineColorAndroid="transparent"
             value={query} />
-          <TouchableOpacity onPress={this._search}>
-            <MaterialIcons
-              name="search"
-              size={24} />
-          </TouchableOpacity>
+          {!!results && (
+            <TouchableOpacity onPress={this._clear}>
+              <MaterialIcons
+                name="clear"
+                size={24} />
+            </TouchableOpacity>
+          )}
+          {!results && (
+            <TouchableOpacity onPress={this._search}>
+              <MaterialIcons
+                name="search"
+                size={24} />
+            </TouchableOpacity>
+          )}
         </View>
         <FlatList
           data={results}
@@ -178,6 +152,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
 
 const mapStateToProps = state => ({
   ids: state.beer.ids,
+  beers: state.beer.list,
 });
 
 export default connect(
