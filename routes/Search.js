@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-import Untappd from '../lib/Untappd';
+import { search } from '../modules/api';
 
 const styles = StyleSheet.create({
   container: {
@@ -37,9 +40,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  image: {
+    height: 36,
+    width: 36,
+    marginRight: 10,
+  },
   text: {
     color: '#333',
     fontSize: 16,
+  },
+  tried: {
+    marginLeft: 5,
   },
 });
 
@@ -55,44 +66,66 @@ class Search extends Component {
     this.state = {};
   }
 
+  componentWillReceiveProps({ ids }) {
+    const { results = [] } = this.state;
+    if(this.props.ids !== ids)
+      this.setState({ results: [ ...results ] });
+  }
+
   componentWillUnmount() {
     clearTimeout(this._timeout);
   }
 
-  _delayedSearch = (search) => {
+  _delayedSearch = (query) => {
     clearTimeout(this._timeout);
     this._timeout = setTimeout(this._search, 500);
-    this.setState({ search });
+    this.setState({ query });
   }
 
   _search = () => {
-    const { search } = this.state;
+    const { query } = this.state;
     clearTimeout(this._timeout);
-    Untappd(search).then(results => this.setState({
+    this.props.search(query).then(results => this.setState({
       endReached: !results.length,
       results,
     }));
   }
 
-  _renderItem = ({ item: beer }) => (
-    <TouchableOpacity onPress={() => this._addBeer(beer)}>
-      <View style={styles.item}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.text}>{beer.name}</Text>
-          <Text style={styles.text}>{beer.brewery}</Text>
+  _renderItem = ({ item: beer }) => {
+    const { ids } = this.props;
+    return (
+      <TouchableOpacity onPress={() => this._addBeer(beer)}>
+        <View style={styles.item}>
+          <Image
+            resizeMode="contain"
+            source={{ uri: beer.label }}
+            style={styles.image} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.text}>
+              {beer.name}
+              {beer.tried && (
+                <MaterialIcons
+                  name="star"
+                  size={14}
+                  color="#ffd82f"
+                  style={styles.tried} />
+              )}
+            </Text>
+            <Text style={styles.text}>{beer.brewery}</Text>
+          </View>
+          <MaterialIcons
+            name={ids.includes(beer.id) ? 'check' : 'chevron-right'}
+            size={24} />
         </View>
-        <MaterialIcons
-          name="chevron-right"
-          size={24} />
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  }
 
   _onEndReached = () => {
-    const { loading, endReached, results = [], search } = this.state;
-    if(search && !(loading || endReached))
+    const { loading, endReached, results = [], query } = this.state;
+    if(query && !(loading || endReached))
       this.setState({ loading: true }, () =>
-        Untappd(search, results.length).then(data =>
+        this.props.search(query, results.length).then(data =>
           this.setState({
             loading: false,
             endReached: !data.length,
@@ -109,7 +142,7 @@ class Search extends Component {
     this.props.navigation.navigate('Beer', { beer });
 
   render() {
-    const { results, search } = this.state;
+    const { results, query } = this.state;
     return (
       <View style={styles.container}>
         <View style={styles.search}>
@@ -120,7 +153,7 @@ class Search extends Component {
             placeholder="Beer Name"
             style={styles.input}
             underlineColorAndroid="transparent"
-            value={search} />
+            value={query} />
           <TouchableOpacity onPress={this._search}>
             <MaterialIcons
               name="search"
@@ -139,4 +172,15 @@ class Search extends Component {
 
 }
 
-export default Search;
+const mapDispatchToProps = dispatch => bindActionCreators({
+  search,
+}, dispatch);
+
+const mapStateToProps = state => ({
+  ids: state.beer.ids,
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Search);

@@ -1,4 +1,5 @@
 const initialState = {
+  ids: [],
   list: [],
 };
 
@@ -14,6 +15,10 @@ export default (state = initialState, action) => {
           }
       return {
         ...state,
+        ids: index < state.list.length ? state.ids : [
+          ...state.ids,
+          action.beer.id
+        ],
         list: [
           ...state.list.slice(0, index),
           {
@@ -33,6 +38,10 @@ export default (state = initialState, action) => {
           }
       return {
         ...state,
+        ids: state.list[index].quantity > 0 ? state.ids : [
+          ...state.ids.slice(0, index),
+          ...state.ids.slice(index + 1),
+        ],
         list: [
           ...state.list.slice(0, index),
           ...(state.list[index].quantity > 0 ? [

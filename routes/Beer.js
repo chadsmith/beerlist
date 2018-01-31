@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { Platform, Image, Linking, Text, TouchableOpacity, StyleSheet, View } from 'react-native';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { EventEmitter } from 'events';
@@ -7,6 +7,8 @@ import { EventEmitter } from 'events';
 import ActionButton from 'react-native-action-button';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+import { addBeer, removeBeer } from '../modules/beer';
 
 const emitter = new EventEmitter();
 
@@ -43,6 +45,26 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 15,
   },
+  image: {
+    width: 64,
+    height: 64,
+  },
+  brewery: {
+    marginTop: 10,
+    fontSize: 16,
+  },
+  style: {
+    marginTop: 10,
+    fontSize: 14,
+  },
+  stats: {
+    marginTop: 5,
+    fontSize: 14,
+  },
+  quantity: {
+    marginTop: 15,
+    fontSize: 14,
+  }
 });
 
 class Beer extends Component {
@@ -102,12 +124,44 @@ class Beer extends Component {
     emit(data);
   }
 
+  _onPress = () => {
+    const { id } = this.props.navigation.state.params.beer;
+    const uri = `untappd://beer/${id}`;
+    Linking.canOpenURL(uri).then((supported) => {
+      if(supported)
+        Linking.openURL(uri);
+      else
+        Linking.openURL(`https://untappd.com/beer/${id}`);
+    });
+  }
+
   render() {
-    const { emit, navigation } = this.props;
+    const { addBeer, navigation, removeBeer } = this.props;
     const { index, beer } = navigation.state.params;
     return (
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.text}>{JSON.stringify(beer)}</Text>
+      <View style={styles.container}>
+        <View style={{ alignItems: 'center' }}>
+          <TouchableOpacity onPress={this._onPress}>
+            <Image
+              resizeMode="contain"
+              source={{ uri: beer.label }}
+              style={styles.image} />
+          </TouchableOpacity>
+          <Text style={styles.brewery}>{beer.brewery}</Text>
+          <Text style={styles.style}>{beer.style}</Text>
+          <Text style={styles.stats}>
+            {beer.abv && (
+              <Text style={styles.abv}>{beer.abv}% ABV</Text>
+            )}
+            {beer.abv && beer.ibu && ' • '}
+            {beer.ibu && (
+              <Text style={styles.ibu}>{beer.ibu} IBU</Text>
+            )}
+          </Text>
+          {typeof index !== 'undefined' && (
+            <Text style={styles.quantity}>Quantity: {beer.quantity}</Text>
+          )}
+        </View>
         {beer.quantity > 0 && (
           <ActionButton
             buttonColor="#20a8ff"
@@ -119,7 +173,7 @@ class Beer extends Component {
             )}>
             <ActionButton.Item
               buttonColor="#ff4330"
-              onPress={() => emit({ type: 'REMOVE_BEER', beer, index })}>
+              onPress={() => removeBeer({ beer, index })}>
               <MaterialIcons
                 name="remove"
                 size={26}
@@ -127,7 +181,7 @@ class Beer extends Component {
             </ActionButton.Item>
             <ActionButton.Item
               buttonColor="#ffd82f"
-              onPress={() => emit({ type: 'ADD_BEER', beer, index })}>
+              onPress={() => addBeer({ beer, index })}>
               <MaterialIcons
                 name="add"
                 size={26}
@@ -138,16 +192,18 @@ class Beer extends Component {
         {typeof index !== 'undefined' && !beer.quantity && (
           <ActionButton
             buttonColor="#ffd82f"
-            onPress={() => emit({ type: 'ADD_BEER', beer })} />
+            onPress={() => addBeer({ beer })} />
         )}
-      </ScrollView>
+      </View>
     );
   }
 
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators({
+  addBeer,
   emit: action => action,
+  removeBeer,
 }, dispatch);
 
 const mapStateToProps = state => ({

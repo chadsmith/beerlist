@@ -1,12 +1,14 @@
 import React from 'react';
 import { StackNavigator } from 'react-navigation';
 import { Provider } from 'react-redux';
-import { createStore, combineReducers } from 'redux';
+import { applyMiddleware, createStore, combineReducers } from 'redux';
 import { persistReducer, persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/es/integration/react';
+import thunk from 'redux-thunk';
 import storage from 'redux-persist/lib/storage';
 
 import Beer from './routes/Beer';
+import Login from './routes/Login';
 import Main from './routes/Main';
 import Search from './routes/Search';
 
@@ -15,6 +17,9 @@ import Reducers from './reducers';
 const App = StackNavigator({
   Beer: {
     screen: Beer,
+  },
+  Login: {
+    screen: Login,
   },
   Main: {
     screen: Main,
@@ -37,7 +42,7 @@ const reducers = combineReducers(
     }),
   {}));
 
-const store = createStore(reducers);
+const store = createStore(reducers, applyMiddleware(thunk));
 const persistor = persistStore(store, null, () => store.getState());
 
 export default () => (

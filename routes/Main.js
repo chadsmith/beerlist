@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { connect } from 'react-redux';
 
 import ActionButton from 'react-native-action-button';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+import { resetStack } from '../modules/api';
 
 const styles = StyleSheet.create({
   container: {
@@ -25,9 +27,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  image: {
+    height: 36,
+    width: 36,
+    marginRight: 10,
+  },
   text: {
     color: '#333',
     fontSize: 16,
+  },
+  tried: {
+    marginLeft: 5,
+  },
+  noBeer: {
+    color: '#333',
+    fontSize: 20,
+    textAlign: 'center',
   },
 });
 
@@ -37,13 +52,32 @@ class Main extends Component {
     header: null,
   });
 
+  componentWillMount() {
+    const { loggedIn, navigation } = this.props;
+    if(!loggedIn)
+      navigation.dispatch(resetStack('Login'));
+  }
+
   _renderItem = ({ item: beer, index }) => {
     const { navigation } = this.props;
     return (
       <TouchableOpacity onPress={() => navigation.navigate('Beer', { beer, index })}>
         <View style={styles.item}>
+          <Image
+            resizeMode="contain"
+            source={{ uri: beer.label }}
+            style={styles.image} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.text}>{beer.name}</Text>
+            <Text style={styles.text}>
+              {beer.name}
+              {beer.tried && (
+                <MaterialIcons
+                  name="star"
+                  size={14}
+                  color="#ffd82f"
+                  style={styles.tried} />
+              )}
+            </Text>
             <Text style={styles.text}>{beer.brewery}</Text>
           </View>
           <MaterialIcons
@@ -58,11 +92,18 @@ class Main extends Component {
     const { beers, navigation } = this.props;
     return (
       <View style={styles.container}>
-        <FlatList
-          data={beers}
-          keyExtractor={item => item.id}
-          renderItem={this._renderItem}
-          style={styles.list} />
+        {!beers.length && (
+          <Text style={styles.noBeer}>
+            Your beer list is empty.
+          </Text>
+        )}
+        {beers.length > 0 && (
+          <FlatList
+            data={beers}
+            keyExtractor={item => item.id}
+            renderItem={this._renderItem}
+            style={styles.list} />
+        )}
         <ActionButton
           buttonColor="rgba(231, 76, 60, 1)"
           onPress={() => navigation.navigate('Search')}
@@ -80,6 +121,7 @@ class Main extends Component {
 
 const mapStateToProps = state => ({
   beers: state.beer.list,
+  loggedIn: !!state.api.token,
 });
 
 export default connect(mapStateToProps)(Main);
