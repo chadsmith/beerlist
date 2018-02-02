@@ -42,11 +42,13 @@ const SORT = {
   },
   abv: {
     sectionHeader: beer => (beer.abv ? `${beer.abv | 0}% ABV` : 'Unknown'),
-    sort: beers => beers.sort((b1, b2) => b1.abv - b2.abv || b1.name.localeCompare(b2.name)),
+    sort: beers => beers.sort((b1, b2) => b2.abv - b1.abv || b1.name.localeCompare(b2.name)),
+    titleSort: (t1, t2) => parseFloat(t2) - parseFloat(t1),
   },
   ibu: {
-    sectionHeader: beer => (beer.ibu ? `${(Math.round(beer.ibu / 10) - 1) * 10} IBU` : 'Unknown'),
+    sectionHeader: beer => (beer.ibu ? `${Math.round(beer.ibu / 5) * 5} IBU` : 'Unknown'),
     sort: beers => beers.sort((b1, b2) => b1.ibu - b2.ibu || b1.name.localeCompare(b2.name)),
+    titleSort: (t1, t2) => parseFloat(t1) - parseFloat(t2),
   }
 };
 
@@ -91,10 +93,10 @@ class Main extends Component {
     sortBy(sorts[sorts.indexOf(sort) + 1] || 'default');
   }
 
-  _renderItem = ({ item: beer, index }) => (
+  _renderItem = ({ item: beer }) => (
     <Beer
       beer={beer}
-      onPress={() => this.props.navigation.navigate('Beer', { beer, index })} />
+      onPress={() => this.props.navigation.navigate('Beer', { beer })} />
   );
 
   _renderSectionHeader = ({ section }) => (
@@ -103,13 +105,13 @@ class Main extends Component {
 
   _renderBeers() {
     const { beers, sort: method } = this.props;
-    const { sectionHeader, sort } = SORT[method];
+    const { sectionHeader, sort, titleSort } = SORT[method];
     const ListComponent = sectionHeader ? SectionList : FlatList;
     if(!beers.length)
       return null;
     return (
       <ListComponent
-        data={sort(beers)}
+        data={[ ...sort(beers) ]}
         keyExtractor={item => item.id}
         renderItem={this._renderItem}
         renderSectionHeader={sectionHeader ? this._renderSectionHeader : undefined}
@@ -126,7 +128,7 @@ class Main extends Component {
               ],
             }
           });
-        }, {})).sort((s1, s2) => s1.title.localeCompare(s2.title)) : undefined}
+        }, {})).sort(titleSort || ((s1, s2) => s1.title.localeCompare(s2.title))) : undefined}
         style={styles.list} />
     );
   }
