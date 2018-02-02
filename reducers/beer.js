@@ -1,6 +1,7 @@
 const initialState = {
   ids: [],
   list: [],
+  sort: 'default',
 };
 
 export default (state = initialState, action) => {
@@ -53,6 +54,11 @@ export default (state = initialState, action) => {
           ] : []),
           ...state.list.slice(index + 1),
         ],
+      };
+    case 'SORT':
+      return {
+        ...state,
+        sort: action.sort,
       };
     default:
       return state;
