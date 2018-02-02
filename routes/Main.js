@@ -29,10 +29,6 @@ const SORT = {
   default: {
     sort: beers => beers,
   },
-  name: {
-    sectionHeader: beer => beer.name.charAt(0).toUpperCase(),
-    sort: beers => beers.sort((b1, b2) => b1.name.localeCompare(b2.name)),
-  },
   quantity: {
     sort: beers => beers.sort((b1, b2) => b2.quantity - b1.quantity || b1.name.localeCompare(b2.name)),
   },
