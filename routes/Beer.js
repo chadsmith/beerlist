@@ -24,12 +24,8 @@ const AddButton = ({ beer }) => (
   </TouchableOpacity>
 );
 
-const DeleteButton = ({ beer, index }) => (
-  <TouchableOpacity onPress={() => emitter.emit('button', {
-    type: 'REMOVE_BEER',
-    beer,
-    index,
-  })}>
+const DeleteButton = ({ beer }) => (
+  <TouchableOpacity onPress={() => emitter.emit('button', { type: 'REMOVE_BEER', beer })}>
     <MaterialIcons
       name="delete"
       size={26}
@@ -70,20 +66,19 @@ const styles = StyleSheet.create({
 class Beer extends Component {
 
   static navigationOptions = ({ navigation }) => {
-    const { beer, index } = navigation.state.params;
+    const { beer } = navigation.state.params;
+    const { name, quantity } = beer;
     let headerRight = null;
-    if(index < 0)
+    if(typeof quantity === 'undefined')
       headerRight = (
         <AddButton beer={beer} />
       );
-    else if(beer.quantity === 0)
+    else if(quantity === 0)
       headerRight = (
-        <DeleteButton
-          beer={beer}
-          index={index} />
+        <DeleteButton beer={beer} />
       );
     return {
-      title: beer.name,
+      title: name,
       headerRight,
     };
   };
@@ -92,20 +87,12 @@ class Beer extends Component {
     emitter.addListener('button', this._onButton);
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps({ beers, ids }) {
     const { beers: lastBeers, navigation } = this.props;
-    const { beer, index } = navigation.state.params;
-    const { beers } = nextProps;
-    if(lastBeers !== beers) {
-      if(index > -1)
-        navigation.setParams({ beer: beers[index] });
-      else
-        for(let i = 0; i < beers.length; i += 1)
-          if(beers[i].id === beer.id) {
-            navigation.setParams({ beer: beers[i], index: i });
-            break;
-          }
-    }
+    const { beer } = navigation.state.params;
+    const index = ids.indexOf(beer.id);
+    if(index > -1 && lastBeers !== beers)
+      navigation.setParams({ beer: beers[index] });
   }
 
   componentWillUnmount() {
@@ -137,7 +124,7 @@ class Beer extends Component {
 
   render() {
     const { addBeer, navigation, removeBeer } = this.props;
-    const { index, beer } = navigation.state.params;
+    const { beer } = navigation.state.params;
     return (
       <View style={styles.container}>
         <View style={{ alignItems: 'center' }}>
@@ -173,7 +160,7 @@ class Beer extends Component {
             )}>
             <ActionButton.Item
               buttonColor="#ff4330"
-              onPress={() => removeBeer({ beer, index })}>
+              onPress={() => removeBeer({ beer })}>
               <MaterialIcons
                 name="remove"
                 size={26}
@@ -181,7 +168,7 @@ class Beer extends Component {
             </ActionButton.Item>
             <ActionButton.Item
               buttonColor="#ffd82f"
-              onPress={() => addBeer({ beer, index })}>
+              onPress={() => addBeer({ beer })}>
               <MaterialIcons
                 name="add"
                 size={26}
@@ -189,7 +176,7 @@ class Beer extends Component {
             </ActionButton.Item>
           </ActionButton>
         )}
-        {index > -1 && !beer.quantity && (
+        {!beer.quantity && (
           <ActionButton
             buttonColor="#ffd82f"
             onPress={() => addBeer({ beer })} />
@@ -208,6 +195,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
 
 const mapStateToProps = state => ({
   beers: state.beer.list,
+  ids: state.beer.ids,
 });
 
 export default connect(

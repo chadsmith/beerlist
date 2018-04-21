@@ -85,7 +85,7 @@ class Search extends Component {
     return (
       <Beer
         beer={beer}
-        onPress={() => navigation.navigate('Beer', { beer, index })} />
+        onPress={() => navigation.navigate('Beer', { beer })} />
     );
   }
 
