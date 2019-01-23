@@ -3,7 +3,7 @@ import { StyleSheet, View, WebView } from 'react-native';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
-import { login, LOGIN_URL, REDIRECT_URL, resetStack } from '../modules/api';
+import { login, LOGIN_URL, REDIRECT_URL } from '../modules/api';
 
 const styles = StyleSheet.create({
   container: {
@@ -25,7 +25,7 @@ class Login extends Component {
   componentWillReceiveProps(nextProps) {
     const { loggedIn, navigation } = nextProps;
     if(loggedIn)
-      navigation.dispatch(resetStack('Main'));
+      navigation.navigate(Main);
   }
 
   _onNavigationStateChange = ({ url }) => {

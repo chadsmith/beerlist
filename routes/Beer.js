@@ -87,12 +87,11 @@ class Beer extends Component {
     emitter.addListener('button', this._onButton);
   }
 
-  componentWillReceiveProps({ beers, ids }) {
-    const { beers: lastBeers, navigation } = this.props;
+  componentWillReceiveProps({ list }) {
+    const { list: last, navigation } = this.props;
     const { beer } = navigation.state.params;
-    const index = ids.indexOf(beer.id);
-    if(index > -1 && lastBeers !== beers)
-      navigation.setParams({ beer: beers[index] });
+    if(last !== list)
+      navigation.setParams({ beer: list[beer.id] });
   }
 
   componentWillUnmount() {
@@ -194,8 +193,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
 }, dispatch);
 
 const mapStateToProps = state => ({
-  beers: state.beer.list,
-  ids: state.beer.ids,
+  list: state.beer.list,
 });
 
 export default connect(

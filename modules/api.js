@@ -1,5 +1,3 @@
-/* global fetch */
-import { NavigationActions } from 'react-navigation';
 import qs from 'qs';
 
 const CLIENT_ID = '8389a169fb4e9b53ed5c8abe873f3745';
@@ -11,12 +9,6 @@ export const LOGIN_URL = `https://untappd.com/oauth/authenticate/?${qs.stringify
   client_id: CLIENT_ID,
   redirect_url: REDIRECT_URL,
 })}`;
-
-export const resetStack = routeName =>
-  NavigationActions.reset({
-    index: 0,
-    actions: [ NavigationActions.navigate({ routeName }) ]
-  });
 
 export const login = url =>
   (dispatch) => {

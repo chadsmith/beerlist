@@ -8,7 +8,6 @@ import ActionButton from 'react-native-action-button';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { Beer, Header } from '../components';
-import { resetStack } from '../modules/api';
 
 const styles = StyleSheet.create({
   container: {
@@ -80,7 +79,7 @@ class Main extends Component {
     const { loggedIn, navigation } = this.props;
     emitter.addListener('button', this._onButton);
     if(!loggedIn)
-      navigation.dispatch(resetStack('Login'));
+      navigation.navigate('Login');
   }
 
   componentWillUnmount() {
@@ -103,16 +102,14 @@ class Main extends Component {
     <Header {...section} />
   );
 
-  _renderBeers() {
-    const { beers, sort: method } = this.props;
+  _renderBeers(beers) {
+    const { sort: method } = this.props;
     const { sectionHeader, sort, titleSort } = SORT[method];
     const ListComponent = sectionHeader ? SectionList : FlatList;
-    if(!beers.length)
-      return null;
     return (
       <ListComponent
         data={[ ...sort(beers) ]}
-        keyExtractor={item => item.id}
+        keyExtractor={({ id }) => id.toString()}
         renderItem={this._renderItem}
         renderSectionHeader={sectionHeader ? this._renderSectionHeader : undefined}
         sections={sectionHeader ? Object.values(beers.reduce((sections, beer) => {
@@ -134,15 +131,17 @@ class Main extends Component {
   }
 
   render() {
-    const { beers, navigation } = this.props;
+    const { list, navigation } = this.props;
+    const beers = Object.values(list);
+    const empty = beers.length === 0;
     return (
       <View style={styles.container}>
-        {!beers.length && (
+        {empty && (
           <Text style={styles.noBeer}>
             Your beer list is empty.
           </Text>
         )}
-        {this._renderBeers()}
+        {!empty && this._renderBeers(beers)}
         <ActionButton
           buttonColor="rgba(231, 76, 60, 1)"
           onPress={() => navigation.navigate('Search')}
@@ -163,7 +162,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
 }, dispatch);
 
 const mapStateToProps = state => ({
-  beers: state.beer.list,
+  list: state.beer.list,
   loggedIn: !!state.api.token,
   sort: state.beer.sort || 'default',
 });

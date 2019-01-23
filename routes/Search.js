@@ -44,9 +44,9 @@ class Search extends Component {
     this.state = {};
   }
 
-  componentWillReceiveProps({ beers }) {
+  componentWillReceiveProps({ list }) {
     const { results = [] } = this.state;
-    if(this.props.beers !== beers)
+    if(this.props.list !== list)
       this.setState({ results: [ ...results ] });
   }
 
@@ -67,19 +67,18 @@ class Search extends Component {
     });
 
   _search = () => {
-    const { query } = this.state;
     clearTimeout(this._timeout);
-    this.props.search(query).then(results => this.setState({
-      endReached: !results.length,
-      results,
-    }));
+    this.props.search(this.state.query)
+      .then(results => this.setState({
+        endReached: !results.length,
+        results,
+      }));
   }
 
   _renderItem = ({ item }) => {
-    const { ids, beers, navigation } = this.props;
-    const index = ids.indexOf(item.id);
+    const { list, navigation } = this.props;
     const beer = {
-      ...beers[index],
+      ...(list[item.id] || {}),
       ...item,
     };
     return (
@@ -90,13 +89,13 @@ class Search extends Component {
   }
 
   _onEndReached = () => {
-    const { loading, endReached, results = [], query } = this.state;
-    if(query && !(loading || endReached))
+    const { endReached, loading, query, results = [] } = this.state;
+    if(!(endReached || loading) && query)
       this.setState({ loading: true }, () =>
         this.props.search(query, results.length).then(data =>
           this.setState({
-            loading: false,
             endReached: !data.length,
+            loading: false,
             results: [
               ...results,
               ...data,
@@ -107,7 +106,7 @@ class Search extends Component {
   }
 
   render() {
-    const { results, query } = this.state;
+    const { query, results } = this.state;
     return (
       <View style={styles.container}>
         <View style={styles.search}>
@@ -136,7 +135,7 @@ class Search extends Component {
         </View>
         <FlatList
           data={results}
-          keyExtractor={item => item.id}
+          keyExtractor={({ id }) => id.toString()}
           onEndReached={this._onEndReached}
           renderItem={this._renderItem}
           style={styles.list} />
@@ -151,8 +150,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
 }, dispatch);
 
 const mapStateToProps = state => ({
-  ids: state.beer.ids,
-  beers: state.beer.list,
+  list: state.beer.list,
 });
 
 export default connect(
