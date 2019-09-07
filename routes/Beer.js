@@ -68,27 +68,23 @@ class Beer extends Component {
   static navigationOptions = ({ navigation }) => {
     const { beer } = navigation.state.params;
     const { name, quantity } = beer;
-    let headerRight = null;
-    if(typeof quantity === 'undefined')
-      headerRight = (
-        <AddButton beer={beer} />
-      );
-    else if(quantity === 0)
-      headerRight = (
-        <DeleteButton beer={beer} />
-      );
+    let headerRight = quantity === 0 ? (
+      <DeleteButton beer={beer} />
+    ) : (
+      <AddButton beer={beer} />
+    );
     return {
       title: name,
       headerRight,
     };
   };
 
-  componentWillMount() {
+  componentDidMount() {
     emitter.addListener('button', this._onButton);
   }
 
-  componentWillReceiveProps({ list }) {
-    const { list: last, navigation } = this.props;
+  componentDidUpdate({ list: last }) {
+    const { list, navigation } = this.props;
     const { beer } = navigation.state.params;
     if(last !== list)
       navigation.setParams({ beer: list[beer.id] });
@@ -100,14 +96,9 @@ class Beer extends Component {
 
   _onButton = (data) => {
     const { emit, navigation } = this.props;
-    switch(data.type) {
-      case 'REMOVE_BEER':
-        navigation.goBack();
-        break;
-      default:
-        break;
-    }
     emit(data);
+    if(data.type === 'REMOVE_BEER')
+      navigation.goBack();
   }
 
   _onPress = () => {
@@ -150,35 +141,25 @@ class Beer extends Component {
         </View>
         {beer.quantity > 0 && (
           <ActionButton
-            buttonColor="#20a8ff"
+            buttonColor="#ff4330"
+            onPress={() => removeBeer({ beer })}
             renderIcon={() => (
               <MaterialCommunityIcons
                 name="glass-mug"
                 size={26}
                 color="#fff" />
-            )}>
-            <ActionButton.Item
-              buttonColor="#ff4330"
-              onPress={() => removeBeer({ beer })}>
-              <MaterialIcons
-                name="remove"
-                size={26}
-                color="#fff" />
-            </ActionButton.Item>
-            <ActionButton.Item
-              buttonColor="#ffd82f"
-              onPress={() => addBeer({ beer })}>
+            )} />
+        )}
+        {beer.quantity < 1 && (
+          <ActionButton
+            buttonColor="#ffd82f"
+            onPress={() => addBeer({ beer })}
+            renderIcon={() => (
               <MaterialIcons
                 name="add"
                 size={26}
                 color="#fff" />
-            </ActionButton.Item>
-          </ActionButton>
-        )}
-        {!beer.quantity && (
-          <ActionButton
-            buttonColor="#ffd82f"
-            onPress={() => addBeer({ beer })} />
+            )} />
         )}
       </View>
     );

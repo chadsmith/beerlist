@@ -41,6 +41,20 @@ export default (state = initialState, action) => {
         list: newList,
       };
     }
+    case 'SET_BEER': {
+      const { id } = action.beer;
+      const { quantity = 0 } = state.list[id] || {};
+      return {
+        ...state,
+        list: {
+          ...state.list,
+          [id]: {
+            ...action.beer,
+            quantity,
+          },
+        }
+      };
+    }
     case 'SORT':
       return {
         ...state,

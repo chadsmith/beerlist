@@ -25,7 +25,7 @@ class Login extends Component {
   componentWillReceiveProps(nextProps) {
     const { loggedIn, navigation } = nextProps;
     if(loggedIn)
-      navigation.navigate(Main);
+      navigation.navigate('Main');
   }
 
   _onNavigationStateChange = ({ url }) => {

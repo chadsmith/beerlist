@@ -39,12 +39,9 @@ class Search extends Component {
     title: 'Add Beer',
   });
 
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
+  state = {};
 
-  componentWillReceiveProps({ list }) {
+  componentDidUpdate({ list }) {
     const { results = [] } = this.state;
     if(this.props.list !== list)
       this.setState({ results: [ ...results ] });

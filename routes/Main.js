@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { FlatList, Platform, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Platform, RefreshControl, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { EventEmitter } from 'events';
@@ -8,6 +8,7 @@ import ActionButton from 'react-native-action-button';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { Beer, Header } from '../components';
+import { getBeer } from '../modules/api';
 
 const styles = StyleSheet.create({
   container: {
@@ -26,9 +27,6 @@ const styles = StyleSheet.create({
 
 const SORT = {
   default: {
-    sort: beers => beers,
-  },
-  quantity: {
     sort: beers => beers.sort((b1, b2) => b2.quantity - b1.quantity || b1.name.localeCompare(b2.name)),
   },
   brewery: {
@@ -75,7 +73,9 @@ class Main extends Component {
     title: 'Beer List',
   });
 
-  componentWillMount() {
+  state = {}
+
+  componentDidMount() {
     const { loggedIn, navigation } = this.props;
     emitter.addListener('button', this._onButton);
     if(!loggedIn)
@@ -92,6 +92,16 @@ class Main extends Component {
     sortBy(sorts[sorts.indexOf(sort) + 1] || 'default');
   }
 
+  _onRefresh = () => {
+    const { getBeer, list } = this.props;
+    this.setState({ refreshing: true }, () =>
+      Promise.all(
+        Object.values(list).map(getBeer)
+      )
+        .then(() => this.setState({ refreshing: false }))
+    );
+  }
+
   _renderItem = ({ item: beer }) => (
     <Beer
       beer={beer}
@@ -102,14 +112,29 @@ class Main extends Component {
     <Header {...section} />
   );
 
+  _renderTotalQuantity = () => {
+    const beers = Object.values(this.props.list);
+    const total = beers.reduce((subtotal, { quantity }) => subtotal + quantity, 0);
+    const title = `${total} beer${title === 1 ? '' : 's'}`;
+    return (
+      <Header title={title} />
+    );
+  }
+
   _renderBeers(beers) {
     const { sort: method } = this.props;
     const { sectionHeader, sort, titleSort } = SORT[method];
     const ListComponent = sectionHeader ? SectionList : FlatList;
     return (
       <ListComponent
-        data={[ ...sort(beers) ]}
+        data={sort(beers)}
         keyExtractor={({ id }) => id.toString()}
+        ListHeaderComponent={sectionHeader ? undefined : this._renderTotalQuantity}
+        refreshControl={
+          <RefreshControl
+            refreshing={this.state.refreshing}
+            onRefresh={this._onRefresh} />
+        }
         renderItem={this._renderItem}
         renderSectionHeader={sectionHeader ? this._renderSectionHeader : undefined}
         sections={sectionHeader ? Object.values(beers.reduce((sections, beer) => {
@@ -143,7 +168,7 @@ class Main extends Component {
         )}
         {!empty && this._renderBeers(beers)}
         <ActionButton
-          buttonColor="rgba(231, 76, 60, 1)"
+          buttonColor="#20a8ff"
           onPress={() => navigation.navigate('Search')}
           renderIcon={() => (
             <MaterialIcons
@@ -158,6 +183,7 @@ class Main extends Component {
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators({
+  getBeer,
   sortBy: sort => ({ type: 'SORT', sort }),
 }, dispatch);
 
